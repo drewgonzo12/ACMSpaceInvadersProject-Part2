@@ -2,6 +2,7 @@
 ACM's Space Invaders project part 2.
 
 ## Contributors:
+- Andrew Gonzalez
 - John Grover
 - Luis Gonzalez
 
