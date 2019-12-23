@@ -5,4 +5,5 @@ ACM's Space Invaders project part 2.
 - Andrew Gonzalez
 - John Grover
 - Luis Gonzalez
+- Elton Lin
 
