@@ -4,4 +4,5 @@ ACM's Space Invaders project part 2.
 ## Contributors:
 - John Grover
 - Luis Gonzalez
+- Elton Lin
 
