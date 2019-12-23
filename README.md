@@ -1,5 +1,9 @@
 # ACMSpaceInvadersProject-Part2
 ACM's Space Invaders project part 2.
 
-## Contributors
-Luis Gonzalez
+## Contributors:
+- Andrew Gonzalez
+- John Grover
+- Luis Gonzalez
+- Elton Lin
+
