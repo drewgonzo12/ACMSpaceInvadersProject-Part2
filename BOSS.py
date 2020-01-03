@@ -63,7 +63,8 @@ pygame_die_sound = pygame.mixer.Sound(path.join(snd_dir, 'rumble1.ogg'))
 
 # Non final global variables
 font_name = pygame.font.match_font('arial')
-Level_Difficulty = 1
+Level_Difficulty = 0
+Player_Ability = 0
 
 
 # -------------------This will ask for username-----------------------------------
@@ -904,7 +905,7 @@ barriers = pygame.sprite.Group()
 boss = Boss()
 make_Enemies()
 make_barriers()
-player = Player(0)
+player = Player(Player_Ability)
 all_sprites.add(player)
 username = ask(screen, "Enter Name")
 game_loop()
