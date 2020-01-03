@@ -1,10 +1,6 @@
-import math
 import random
-import os
 import pygame
 import time
-import datetime
-import operator
 import collections
 from os import path
 from pygame.locals import *
@@ -64,7 +60,7 @@ pygame_die_sound = pygame.mixer.Sound(path.join(snd_dir, 'rumble1.ogg'))
 # Non final global variables
 font_name = pygame.font.match_font('arial')
 Level_Difficulty = 0
-Player_Ability = 0
+Player_Ability = 1
 
 
 # -------------------This will ask for username-----------------------------------
@@ -117,7 +113,6 @@ def ask(screen, question):
 
 # -----------------------------------------------------------------
 
-
 # -------This is for showing the scores in the game over screen, it gets called every time is game over-------
 def show_scores(current_score):
     f = open("High_Scores.txt", "w+")
@@ -144,6 +139,10 @@ def show_scores(current_score):
 
 def update_scores(sorted):
     top_scores = sorted
+
+def printET():
+    for enemy in enemies1:
+        print(enemy.enemy_type)
 
 
 # ----------- Function used for drawing text on screen ------------
@@ -220,6 +219,7 @@ def make_Enemies():
         aliens.add(i)
 
 
+# -----------------------------------------------------------------
 # --------------------- make barriers ------------------------------
 def make_barriers():
     barrier_arr = []
@@ -251,25 +251,31 @@ def make_barriers():
 
 
 # -----------------------------------------------------------------
-
 # --------- this block is for resetting enemies -------------------
 
 def reset_enemies():
     if ((level(0) + 1) != 2):
         for enemy in enemies1:
+            # Added the following 2 lines of code for getting a random int
+            # and passing it to the random_enemy_type function inside the Aliens class
+            random_enemy_type = random.randint(1, 9)
+            enemy.set_enemy_type(random_enemy_type)
             enemies.append(enemy)
             all_sprites.add(enemy)
             aliens.add(enemy)
             enemy.is_dead = False
+            # Added this line to reset the newly added alien "state"
+            enemy.state = False
             enemy.rect.x = enemy.originX
             enemy.rect.y = enemy.originY
             enemy.speedx = 1
+            enemy.enemy_type = random_enemy_type
     else:
         enemies.append(boss)
         all_sprites.add(boss)
         aliens.add(boss)
         boss.is_dead = False
-        boss.health = 700
+        boss.health = 70
 
 
 # -----------------------------------------------------------------
@@ -332,7 +338,7 @@ class Player(pygame.sprite.Sprite):
         self.ultThreshold = None
         if self.ultimateSelected == 0:
             self.ultThreshold = 10
-        else:
+        elif ultimateSelected == 1:
             self.ultThreshold = 15
 
     def update(self):
@@ -348,6 +354,11 @@ class Player(pygame.sprite.Sprite):
             self.rect.bottom = HEIGHT - 30
 
         self.speedx = 0
+
+        if self.hidden and pygame.time.get_ticks() - self.hide_timer > 1800:
+            self.hidden = False
+            self.rect.centerx = WIDTH / 2
+            self.rect.bottom = HEIGHT - 30
 
         if self.hidden:
             keystate = pygame.K_DOWN
@@ -365,7 +376,6 @@ class Player(pygame.sprite.Sprite):
                         self.multi_bullet()
                     elif self.ultimateSelected == 1:
                         self.invincible()
-
             if keystate[pygame.K_LEFT]:
                 self.speedx = -5
             if keystate[pygame.K_RIGHT]:
@@ -449,7 +459,8 @@ class Bullet(pygame.sprite.Sprite):
 class Boss(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.transform.scale(boss1_img, (150, 150))
+        self.image = boss1_img
+        self.image = pygame.transform.scale(self.image, (150, 150))
         self.rect = self.image.get_rect()
         self.radius = int(self.rect.width / 2)
         self.originX = WIDTH / 2
@@ -460,7 +471,7 @@ class Boss(pygame.sprite.Sprite):
         self.is_dead = True
         self.shoot_delay = 10000
         self.last_shot = pygame.time.get_ticks()
-        self.health = 1000000
+        self.health = 1500000
         self.count = 7
 
     def update(self):
@@ -539,6 +550,10 @@ class Aliens(pygame.sprite.Sprite):
         self.rect.y = y
         self.speedx = 1
         self.score = 15
+        if self.enemy_type == 11:
+            self.score = 1000
+        # Added this enemy "state" to tell whether the enemy will move randomly or not
+        self.state = False
 
         for self in enemies:
             if self.enemy_type == 1:
@@ -548,18 +563,55 @@ class Aliens(pygame.sprite.Sprite):
             if self.enemy_type == 3:
                 self.score = 10
 
+    # Newly added function for assigning new enemy type and uploading the correct image for it
+    def set_enemy_type(self, enemy_type):
+        filename = 'enemy{}.png'.format(enemy_type)
+        img = pygame.image.load(path.join(img_dir, filename)).convert_alpha()
+        self.image = img
+        self.image = pygame.transform.scale(self.image, (16, 16))
+        self.rect = self.image.get_rect()
+
     def update(self):
+        # If statement is added so when the aliens "state" is set to True
+        # The aliens will no longer drop down in sync
         self.rect.x += self.speedx
-        if self.rect.x > WIDTH - 15:
-            self.rect.x = WIDTH - 15
+        if self.state == False:
+            if self.rect.x > WIDTH - 15:
+                self.rect.x = WIDTH - 15
+                for self in enemies:
+                    self.speedx *= -1
+                    self.rect.y += 5
+            if self.rect.x < 0:
+                if self.enemy_type == 11:
+                    self.rect.x += self.speedx
+                    self.is_dead = True
+                    all_sprites.remove(self)
+                    aliens.remove(self)
+                    enemies.remove(self)
+                    self.kill()
+                else:
+                    self.rect.x = 0
+                    for self in enemies:
+                        self.speedx *= -1
+                        self.rect.y += 5
+        else:
             for self in enemies:
-                self.speedx *= -1
-                self.rect.y += 5
-        if self.rect.x < 0:
-            self.rect.x = 0
-            for self in enemies:
-                self.speedx *= -1
-                self.rect.y += 5
+                if self.rect.x > WIDTH - 15:
+                    self.rect.x = WIDTH - 15
+                    self.speedx *= -1
+                    self.rect.y += 5
+                if self.rect.x < 0:
+                    if self.enemy_type == 11:
+                        self.rect.x += self.speedx
+                        self.is_dead = True
+                        all_sprites.remove(self)
+                        aliens.remove(self)
+                        enemies.remove(self)
+                        self.kill()
+                    else:
+                        self.rect.x = 0
+                        self.speedx *= -1
+                        self.rect.y += 5
 
     def shoot(self):
         bullet = EnemyBullet(self.rect.centerx, self.rect.top)
@@ -617,7 +669,9 @@ class Explosion(pygame.sprite.Sprite):
 
 
 # ---------------- image loading for explosions -----------------------
-explosion_anim = {'aliens': [], 'player': []}
+explosion_anim = {}
+explosion_anim['aliens'] = []
+explosion_anim['player'] = []
 for i in range(9):
     filename = 'regularExplosion0{}.png'.format(i)
     img = pygame.image.load(path.join(img_dir, filename)).convert_alpha()
@@ -680,6 +734,8 @@ def game_loop():
             elif fireChance <= laser_prob_start and not boss.is_dead:
                 boss.count = 7
                 boss.laser()
+
+            # -------------------------------Boss colliding with player bullets---------------------------
             hit = pygame.sprite.spritecollide(boss, player_bullets, True, pygame.sprite.collide_circle)
             if hit:
                 explosion_sound.play()
@@ -687,22 +743,70 @@ def game_loop():
                 explb = Explosion(boss.rect.center, 'aliens')
                 all_sprites.add(explb)
                 boss.health -= 10
-                if boss.health <= 0:
-                    enemies.remove(boss)
-                    all_sprites.remove(boss)
-                    aliens.remove(boss)
-                    expla = Explosion(boss.rect.center, 'player')
-                    all_sprites.add(expla)
-                    while expla.alive():
-                        expla.update()
+                alienKilledUltCounter += 1
+
+            # -------------------------------Checking boss health---------------------------
+            if boss.health <= 0:
+                enemies.remove(boss)
+                all_sprites.remove(boss)
+                aliens.remove(boss)
+                expla = Explosion(boss.rect.center, 'player')
+                all_sprites.add(expla)
+                while expla.alive():
+                    expla.update()
+                    all_sprites.draw(screen)
+                    pygame.display.flip()
+                boss.is_dead = True
+                for self in player_bullets:
+                    self.kill()
+                for self in enemy_bullets:
+                    self.kill()
+                level_change()
+
+            # -------------------------------Player colliding with boss bullets---------------------------
+            hits = pygame.sprite.spritecollide(player, enemy_bullets, False, pygame.sprite.collide_circle)
+            if hits:
+                if player.godMode:
+                    player.undoInvincible()
+                else:
+                    explosion_sound.play()
+                    expl = Explosion(player.rect.center, 'player')
+                    all_sprites.add(expl)
+                    player.hide()
+                    while expl.alive():
+                        expl.update()
                         all_sprites.draw(screen)
                         pygame.display.flip()
-                    boss.is_dead = True
-                    for self in player_bullets:
-                        self.kill()
+                    player.lives -= 1
+                    for hit in hits:
+                        hit.kill()
                     for self in enemy_bullets:
                         self.kill()
-                    level_change()
+
+            if player.lives == 0:
+                player.lives = 3
+                running = False
+                screen.fill(BLACK)
+                draw_text(screen, "GAME OVER!", 64, WIDTH / 2, HEIGHT / 6, YELLOW)
+                draw_text(screen, "Game loading...", 40, WIDTH / 2, HEIGHT / 2 + 230, RED)
+                show_scores(score(0))
+                pygame.display.flip()
+                for self in player_bullets:
+                    self.kill()
+                for self in enemy_bullets:
+                    self.kill()
+                for alien in aliens:
+                    all_sprites.remove(alien)
+                    aliens.remove(alien)
+                    enemies.remove(alien)
+                score(-1)
+                level(-1)
+                pygame.time.wait(4000)
+                reset_enemies()
+                screen.fill(BLACK)
+                pygame.display.flip()
+                username = ask(screen, "Enter Name")
+                game_loop()
 
         else:
             for alien in aliens:
@@ -720,15 +824,29 @@ def game_loop():
                     enemies.remove(alien)
                     aliensDead += 1
                     alienKilledUltCounter += 1
+
                     if aliensDead == enemyCount / 2:
                         for alien in aliens:
                             alien.speedx *= 2
+
                             if Level_Difficulty == 0:
                                 probability = 0.0004
                             elif Level_Difficulty == 1:
                                 probability = 0.0007
                             elif Level_Difficulty == 2:
                                 probability = 0.0010
+
+                            boolean_value = random.randint(0, 1)
+                            if alien.enemy_type != 11:
+                                if boolean_value == 0:
+                                    alien.speedx *= -1
+                                else:
+                                    alien.speedx *= 1
+                            alien.state = True
+                        miniBoss = Aliens(0, 20, 11)
+                        all_sprites.add(miniBoss)
+                        aliens.add(miniBoss)
+                        enemies.append(miniBoss)
 
                     if aliensDead == (3 * enemyCount) / 4:
                         for alien in aliens:
@@ -836,10 +954,10 @@ def game_loop():
                 pygame.display.flip()
                 username = ask(screen, "Enter Name")
                 game_loop()
-
+            # -------------------------------Enemy bullet creation---------------------------
             for enemy in enemies:
                 fireChance = random.random()
-                if fireChance <= probability and not enemy.is_dead:
+                if (fireChance <= probability and not enemy.is_dead):
                     x = enemy.rect.x
                     y = enemy.rect.y
                     enemy_bullet = EnemyBullet(enemy.rect.x, y)
@@ -885,6 +1003,8 @@ def game_loop():
         draw_text(screen, "Level: " + str(int(level(0))), 20, WIDTH / 2, 10, WHITE)
         draw_lives(screen, WIDTH - 100, 5, player.lives, player_mini_img)
         pygame.display.flip()
+
+
 
 
 top_scores = {}
