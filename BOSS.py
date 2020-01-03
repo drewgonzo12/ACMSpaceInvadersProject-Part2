@@ -954,6 +954,7 @@ def game_loop():
                 pygame.display.flip()
                 username = ask(screen, "Enter Name")
                 game_loop()
+                
             # -------------------------------Enemy bullet creation---------------------------
             for enemy in enemies:
                 fireChance = random.random()
