@@ -585,8 +585,6 @@ def game_loop():
 
     while running:
 
-
-
         if game_over:
             show_go_screen()
             game_over = False
@@ -603,8 +601,6 @@ def game_loop():
 
         if alienKilledUltCounter == player.ultThreshold:
             player.ultReady = True
-
-
 
         if level(0) == 2:
             probability = 0.0400
