@@ -47,6 +47,11 @@ enemy_bullet_img = pygame.image.load(path.join(img_dir, "bullet_enemy.png")).con
 player_mini_img = pygame.transform.scale(player_img, (20, 20))
 player_mini_img.set_colorkey(BLACK)
 
+barrier_100hp_img = pygame.image.load(path.join(img_dir, "barrier_hp_100.png")).convert_alpha()
+barrier_75hp_img = pygame.image.load(path.join(img_dir, "barrier_hp_75.png")).convert_alpha()
+barrier_50hp_img = pygame.image.load(path.join(img_dir, "barrier_hp_50.png")).convert_alpha()
+barrier_25hp_img = pygame.image.load(path.join(img_dir, "barrier_hp_25.png")).convert_alpha()
+
 # load all game sounds
 shoot_sound = pygame.mixer.Sound(path.join(snd_dir, 'Laser_Shoot.wav'))
 death_sound = pygame.mixer.Sound(path.join(snd_dir, 'Death.wav'))
@@ -55,6 +60,10 @@ explosion_sound = pygame.mixer.Sound(path.join(snd_dir, 'Explosion.wav'))
 pygame.mixer.music.load(path.join(snd_dir, 'tgfcoder-FrozenJam-SeamlessLoop.ogg'))
 pygame.mixer.music.set_volume(0.4)
 pygame_die_sound = pygame.mixer.Sound(path.join(snd_dir, 'rumble1.ogg'))
+
+# Non final global variables
+font_name = pygame.font.match_font('arial')
+Level_Difficulty = 1
 
 
 # -------------------This will ask for username-----------------------------------
@@ -137,9 +146,6 @@ def update_scores(sorted):
 
 
 # ----------- Function used for drawing text on screen ------------
-font_name = pygame.font.match_font('arial')
-
-
 def draw_text(surf, text, size, x, y, color):
     font = pygame.font.Font(font_name, size)
     text_surface = font.render(text, True, color)
@@ -211,6 +217,36 @@ def make_Enemies():
     for i in enemies:
         all_sprites.add(i)
         aliens.add(i)
+
+
+# --------------------- make barriers ------------------------------
+def make_barriers():
+    barrier_arr = []
+
+    if Level_Difficulty == 0:
+        barrier_start = 25
+        for i in range(5):
+            barrier_arr.append(Barrier(barrier_start, 500))
+            barrier_start += 90
+
+        for b in barrier_arr:
+            barriers.add(b)
+            all_sprites.add(b)
+
+    elif Level_Difficulty == 1:
+        barrier_start = 95
+        for i in range(3):
+            barrier_arr.append(Barrier(barrier_start, 500))
+            barrier_start += 110
+
+        for b in barrier_arr:
+            barriers.add(b)
+            all_sprites.add(b)
+
+    elif Level_Difficulty == 2:
+        barrier1 = Barrier(205, 500)
+        barriers.add(barrier1)
+        all_sprites.add(barrier1)
 
 
 # -----------------------------------------------------------------
@@ -412,8 +448,7 @@ class Bullet(pygame.sprite.Sprite):
 class Boss(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        self.image = boss1_img
-        self.image = pygame.transform.scale(self.image, (150, 150))
+        self.image = pygame.transform.scale(boss1_img, (150, 150))
         self.rect = self.image.get_rect()
         self.radius = int(self.rect.width / 2)
         self.originX = WIDTH / 2
@@ -461,6 +496,28 @@ class Boss(pygame.sprite.Sprite):
         all_sprites.add(bullet4)
         enemy_bullets.add(bullet4)
         enemy_shoot_sound.play()
+
+
+class Barrier(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.transform.scale(barrier_100hp_img, (50, 25))
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.is_destroyed = False
+        self.radius = int(self.rect.width / 2)
+        self.health = 100
+
+    def update(self):
+        if 50 < self.health <= 75:
+            self.image = pygame.transform.scale(barrier_75hp_img, (50, 25))
+        elif 25 < self.health <= 50:
+            self.image = pygame.transform.scale(barrier_50hp_img, (50, 25))
+        elif 0 < self.health <= 25:
+            self.image = pygame.transform.scale(barrier_25hp_img, (50, 25))
+        elif self.health <= 0:
+            self.kill()
 
 
 class Aliens(pygame.sprite.Sprite):
@@ -576,7 +633,15 @@ for i in range(9):
 
 
 def game_loop():
-    probability = 0.0004
+    probability = 0
+
+    if Level_Difficulty == 0:
+        probability = 0.0001
+    elif Level_Difficulty == 1:
+        probability = 0.0004
+    elif Level_Difficulty == 2:
+        probability = 0.0007
+
     running = True
     game_over = True
     enemyCount = len(aliens.sprites())
@@ -640,6 +705,8 @@ def game_loop():
 
         else:
             for alien in aliens:
+
+                # -------------------------------Alien colliding with player bullets---------------------------
                 hits = pygame.sprite.spritecollide(alien, player_bullets, True, pygame.sprite.collide_circle)
                 for hit in hits:
                     explosion_sound.play()
@@ -655,15 +722,33 @@ def game_loop():
                     if aliensDead == enemyCount / 2:
                         for alien in aliens:
                             alien.speedx *= 2
-                            probability = 0.00070
+                            if Level_Difficulty == 0:
+                                probability = 0.0004
+                            elif Level_Difficulty == 1:
+                                probability = 0.0007
+                            elif Level_Difficulty == 2:
+                                probability = 0.0010
+
                     if aliensDead == (3 * enemyCount) / 4:
                         for alien in aliens:
                             alien.speedx *= 3 / 2
-                            probability = 0.0030
+                            if Level_Difficulty == 0:
+                                probability = .001
+                            elif Level_Difficulty == 1:
+                                probability = .004
+                            elif Level_Difficulty == 2:
+                                probability = .007
+
                     if aliensDead == enemyCount - 1:
                         for alien in aliens:
                             alien.speedx *= 5 / 3
-                            probability = 0.0200
+                            if Level_Difficulty == 0:
+                                probability = .015
+                            elif Level_Difficulty == 1:
+                                probability = .045
+                            elif Level_Difficulty == 2:
+                                probability = .075
+
                     if not enemies:
                         for self in player_bullets:
                             self.kill()
@@ -671,6 +756,7 @@ def game_loop():
                             self.kill()
                         level_change()
 
+            # -------------------------------Player colliding with enemy-------------------------------
             hits = pygame.sprite.spritecollide(player, aliens, False, pygame.sprite.collide_circle)
             if hits:
                 pygame_die_sound.play()
@@ -705,9 +791,54 @@ def game_loop():
                 username = ask(screen, "Enter Name")
                 game_loop()
 
+            # -------------------------------Player colliding with enemy bullets---------------------------
+            hits = pygame.sprite.spritecollide(player, enemy_bullets, False, pygame.sprite.collide_circle)
+            if hits:
+                if player.godMode:
+                    player.undoInvincible()
+                else:
+                    explosion_sound.play()
+                    expl = Explosion(player.rect.center, 'player')
+                    all_sprites.add(expl)
+                    player.hide()
+                    while expl.alive():
+                        expl.update()
+                        all_sprites.draw(screen)
+                        pygame.display.flip()
+                    player.lives -= 1
+                for hit in hits:
+                    hit.kill()
+                for self in enemy_bullets:
+                    self.kill()
+
+            if player.lives == 0:
+                player.lives = 3
+                running = False
+                screen.fill(BLACK)
+                draw_text(screen, "GAME OVER!", 64, WIDTH / 2, HEIGHT / 6, YELLOW)
+                draw_text(screen, "Game loading...", 40, WIDTH / 2, HEIGHT / 2 + 230, RED)
+                show_scores(score(0))
+                pygame.display.flip()
+                for self in player_bullets:
+                    self.kill()
+                for self in enemy_bullets:
+                    self.kill()
+                for alien in aliens:
+                    all_sprites.remove(alien)
+                    aliens.remove(alien)
+                    enemies.remove(alien)
+                score(-1)
+                level(-1)
+                pygame.time.wait(4000)
+                reset_enemies()
+                screen.fill(BLACK)
+                pygame.display.flip()
+                username = ask(screen, "Enter Name")
+                game_loop()
+
             for enemy in enemies:
                 fireChance = random.random()
-                if (fireChance <= probability and not enemy.is_dead):
+                if fireChance <= probability and not enemy.is_dead:
                     x = enemy.rect.x
                     y = enemy.rect.y
                     enemy_bullet = EnemyBullet(enemy.rect.x, y)
@@ -746,50 +877,6 @@ def game_loop():
                     username = ask(screen, "Enter Name")
                     game_loop()
 
-        hits = pygame.sprite.spritecollide(player, enemy_bullets, False, pygame.sprite.collide_circle)
-        if hits:
-            if player.godMode:
-                player.undoInvincible()
-            else:
-                explosion_sound.play()
-                expl = Explosion(player.rect.center, 'player')
-                all_sprites.add(expl)
-                player.hide()
-                while expl.alive():
-                    expl.update()
-                    all_sprites.draw(screen)
-                    pygame.display.flip()
-                player.lives -= 1
-            for hit in hits:
-                hit.kill()
-            for self in enemy_bullets:
-                self.kill()
-
-        if player.lives == 0:
-            player.lives = 3
-            running = False
-            screen.fill(BLACK)
-            draw_text(screen, "GAME OVER!", 64, WIDTH / 2, HEIGHT / 6, YELLOW)
-            draw_text(screen, "Game loading...", 40, WIDTH / 2, HEIGHT / 2 + 230, RED)
-            show_scores(score(0))
-            pygame.display.flip()
-            for self in player_bullets:
-                self.kill()
-            for self in enemy_bullets:
-                self.kill()
-            for alien in aliens:
-                all_sprites.remove(alien)
-                aliens.remove(alien)
-                enemies.remove(alien)
-            score(-1)
-            level(-1)
-            pygame.time.wait(4000)
-            reset_enemies()
-            screen.fill(BLACK)
-            pygame.display.flip()
-            username = ask(screen, "Enter Name")
-            game_loop()
-
         screen.blit(background, (0, 0))
         all_sprites.update()
         all_sprites.draw(screen)
@@ -813,9 +900,11 @@ all_sprites = pygame.sprite.Group()
 aliens = pygame.sprite.Group()
 player_bullets = pygame.sprite.Group()
 enemy_bullets = pygame.sprite.Group()
-make_Enemies()
-player = Player(0)
+barriers = pygame.sprite.Group()
 boss = Boss()
+make_Enemies()
+make_barriers()
+player = Player(0)
 all_sprites.add(player)
 username = ask(screen, "Enter Name")
 game_loop()
