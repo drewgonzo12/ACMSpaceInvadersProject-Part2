@@ -60,7 +60,7 @@ pygame_die_sound = pygame.mixer.Sound(path.join(snd_dir, 'rumble1.ogg'))
 # Non final global variables
 font_name = pygame.font.match_font('arial')
 Level_Difficulty = 0
-Player_Ability = 0
+Player_Ability = 2
 
 
 # -------------------This will ask for username-----------------------------------
@@ -351,6 +351,7 @@ class Player(pygame.sprite.Sprite):
         self.ultReady = False
         self.ultUsed = False
         self.godMode = False
+        self.zawurdo = False
         self.ultThreshold = None
         if self.ultimateSelected == 0:
             self.ultThreshold = 10
@@ -1003,7 +1004,7 @@ def game_loop():
 
             # -------------------------------Enemy bullet creation---------------------------
             for enemy in enemies:
-                if enemy_bullets.zawurdo:
+                if enemy.zawurdo:
                     fireChance = 0
                     if (fireChance <= probability and not enemy.is_dead):
                         x = enemy.rect.x
