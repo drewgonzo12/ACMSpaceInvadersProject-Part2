@@ -1,69 +1,44 @@
-# import the modules  
-import math
-import tkinter 
-import random 
+from tkinter import *
+from PIL import Image,ImageTk #python -m pip install pillow to cmd
 
-score = 0
+def exit1():
+        exit()
 
-RED = (255, 0, 0)
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-GREEN = (0, 255, 0)
-BLUE = (0, 0, 255)
-GREY = (112, 118, 123)
-YELLOW = (255, 255, 0)
-  
-# the game time left, initially 30 seconds. 
-timeleft = 30
-  
-# function that will start the game. 
-def startGame(event): 
-          
-        # update the score. 
-        scoreLabel.config(text = "Score: " + str(score)) 
-  
-class Score(object):
-	def __init__(self, name):
-		self.name = name
-  
-# create a GUI window 
-root = tkinter.Tk() 
-  
-# set the title 
-root.title("SPACE INVADERS!") 
-  
-# set the size 
-root.geometry("460x600") 
-  
-# add an instructions label 
-instructions = tkinter.Label(root, text = "Arrow keys to move, "
-                        "Space to fire weapon", 
-                                      font = ('Courier', 12)) 
-instructions.pack()  
+window = Tk()
+window.geometry("460x600")
+window.title("SPACE INVADERS!")
 
-v = tkinter.IntVar()
+#this block of code MUST come after window = Tk(), not before----
+imge1 = Image.open("C:/Users/elton/OneDrive/Desktop/SpaceInvaders/img/ast.png")
+photo1 = ImageTk.PhotoImage(imge1)
 
-tkinter.Label(root, 
-        text="""Select your ship, 1 or 2""",
-        justify = tkinter.LEFT,
-        padx = 20).pack()
+lab1 = Label(image = photo1)
+lab1.pack()
+#----
 
-tkinter.Radiobutton(root, 
-              text="Rigel Axiom",
-              padx = 20, 
-              variable=v, 
-              value=1).pack(anchor=tkinter.W)
+#label1 = Label(window, text = "SPACE INVADERS", fg = "blue", bg = "yellow", font = ("arial", 16, "bold"))
+#label1.pack(fill = BOTH, pady = 2, padx = 2)
 
-tkinter.Radiobutton(root, 
-              text="Voyager II",
-              padx = 20, 
-              variable=v, 
-              value=2).pack(anchor=tkinter.W)
+label2 = Label(window, text = "Username :", width = 20, font = ("arial", 10, "bold"))
+label2.place(x = 80, y = 200)
 
-# add a score label 
-scoreLabel = tkinter.Label(root, text = "Score Tracker: ", 
-                                      font = ('Courier', 12)) 
-scoreLabel.pack() 
-  
-# start the GUI 
-root.mainloop() 
+label3 = Label(window, text = "Select Your Ship", width = 20, font = ("arial", 10, "bold"))
+label3.place(x = 80, y = 255)
+
+label4 = Label(window, text = "Select Difficulty", width = 20, font = ("arial", 10, "bold"))
+label4.place(x = 80, y = 325)
+
+b1 = Button(window, text = "easy", width = 12, bg = 'green', fg = 'papayawhip', command = print)
+b1.place(x = 55, y = 400)
+
+b2 = Button(window, text = "medium", width = 12, bg = '#ffcc00', fg = 'white', command = print)
+b2.place(x = 180, y = 400)
+
+b3 = Button(window, text = "hard", width = 12, bg = 'red', fg = 'papayawhip', command = print)
+b3.place(x = 310, y = 400)
+
+b4 = Button(window, text = "necessito exito", width = 12, bg = 'gray', fg = 'papayawhip', command = exit1)
+b4.place(x = 180, y = 550)
+
+window.mainloop()
+
