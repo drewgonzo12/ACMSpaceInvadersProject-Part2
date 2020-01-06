@@ -270,7 +270,7 @@ def reset_barriers(creation_toggle):
 # --------- this block is for resetting enemies -------------------
 
 def reset_enemies():
-    if (level(0) + 1) != 2:
+    if (level(0) + 1) %  3 != 0:
         for enemy in enemies1:
             # Added the following 2 lines of code for getting a random int
             # and passing it to the random_enemy_type function inside the Aliens class
@@ -497,7 +497,7 @@ class Boss(pygame.sprite.Sprite):
         self.is_dead = True
         self.shoot_delay = 10000
         self.last_shot = pygame.time.get_ticks()
-        self.health = 600
+        self.health = 650
         self.count = 7
         self.zawarudo = False
 
@@ -769,7 +769,7 @@ def game_loop():
         if alienKilledUltCounter == player.ultThreshold:
             player.ultReady = True
 
-        if level(0) == 2:
+        if level(0) % 3 == 0:
             probability = 0.0400
             laser_prob_start = 0.0100
             fireChance = random.random()
