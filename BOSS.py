@@ -270,7 +270,7 @@ def reset_barriers(creation_toggle):
 # --------- this block is for resetting enemies -------------------
 
 def reset_enemies():
-    if (level(0) + 1) %  3 != 0:
+    if (level(0) + 1) % 3 != 0:
         for enemy in enemies1:
             # Added the following 2 lines of code for getting a random int
             # and passing it to the random_enemy_type function inside the Aliens class
@@ -356,7 +356,7 @@ class Player(pygame.sprite.Sprite):
         self.kills = 0
         self.ultThreshold = None
         if self.ultimateSelected == 0:
-            self.ultThreshold = 10
+            self.ultThreshold = 13
         elif ultimateSelected == 1:
             self.ultThreshold = 15
         elif ultimateSelected == 2:
@@ -398,7 +398,7 @@ class Player(pygame.sprite.Sprite):
                     elif self.ultimateSelected == 1:
                         self.invincible()
                     elif self.ultimateSelected == 2:
-                        self.bullet_stop()
+                        self.za_warudo()
             if keystate[pygame.K_LEFT]:
                 self.speedx = -5
             if keystate[pygame.K_RIGHT]:
@@ -452,11 +452,11 @@ class Player(pygame.sprite.Sprite):
         self.godMode = False
         self.image = pygame.transform.scale(player_img, (25, 25))
 
-    def bullet_stop(self):
+    def za_warudo(self):
         self.zawarudo = True
         self.image = pygame.transform.scale(player_img_bulletstop, (25, 25))
 
-    def undo_bullet_stop(self):
+    def undo_za_warudo(self):
         self.zawarudo = False
         self.kills = 0
         self.image = self.image = pygame.transform.scale(player_img, (25, 25))
@@ -758,7 +758,7 @@ def game_loop():
                 alien.zawarudo = False
             for self in enemy_bullets:
                 self.zawarudo = False
-            player.undo_bullet_stop()
+            player.undo_za_warudo()
 
         if player.zawarudo and player.kills <= 0:
             for alien in aliens:
@@ -809,7 +809,7 @@ def game_loop():
                 boss.health -= 10
                 alienKilledUltCounter += 1
                 if player.zawarudo:
-                    player.kills += 2
+                    player.kills += 1.5
 
             # -------------------------------Player colliding with boss bullets---------------------------
             hits = pygame.sprite.spritecollide(player, enemy_bullets, False, pygame.sprite.collide_circle)
