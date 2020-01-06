@@ -270,7 +270,7 @@ def reset_barriers(creation_toggle):
 # --------- this block is for resetting enemies -------------------
 
 def reset_enemies():
-    if (level(0) + 1) != 2:
+    if (level(0) + 1) %  3 != 0:
         for enemy in enemies1:
             # Added the following 2 lines of code for getting a random int
             # and passing it to the random_enemy_type function inside the Aliens class
@@ -497,17 +497,18 @@ class Boss(pygame.sprite.Sprite):
         self.is_dead = True
         self.shoot_delay = 10000
         self.last_shot = pygame.time.get_ticks()
-        self.health = 500
+        self.health = 650
         self.count = 7
         self.zawarudo = False
 
     def update(self):
 
-        if self.rect.x != player.rect.x:
-            if self.rect.centerx < player.rect.centerx:
-                self.rect.x += self.speedx
-            else:
-                self.rect.x -= self.speedx
+        if not self.zawarudo:
+            if self.rect.x != player.rect.x:
+                if self.rect.centerx < player.rect.centerx:
+                    self.rect.x += self.speedx
+                else:
+                    self.rect.x -= self.speedx
 
         if self.rect.x > WIDTH - 149:
             self.rect.x = WIDTH - 149
@@ -602,7 +603,8 @@ class Aliens(pygame.sprite.Sprite):
     def update(self):
         # If statement is added so when the aliens "state" is set to True
         # The aliens will no longer drop down in sync
-        self.rect.x += self.speedx
+        if not self.zawarudo:
+            self.rect.x += self.speedx
         if self.state == False:
             if self.rect.x > WIDTH - 15:
                 self.rect.x = WIDTH - 15
@@ -659,9 +661,11 @@ class EnemyBullet(pygame.sprite.Sprite):
         self.rect.x = x - 9
         self.rect.y = y - 10
         self.speedy = 4
+        self.zawarudo = False
 
     def update(self):
-        self.rect.y += self.speedy
+        if not self.zawarudo:
+            self.rect.y += self.speedy
         if self.rect.y > 600:
             self.kill()
 
@@ -752,16 +756,20 @@ def game_loop():
         if player.kills > 6:
             for alien in aliens:
                 alien.zawarudo = False
+            for self in enemy_bullets:
+                self.zawarudo = False
             player.undo_bullet_stop()
 
-        if player.zawarudo:
+        if player.zawarudo and player.kills <= 0:
             for alien in aliens:
                 alien.zawarudo = True
+            for self in enemy_bullets:
+                self.zawarudo = True
 
         if alienKilledUltCounter == player.ultThreshold:
             player.ultReady = True
 
-        if level(0) == 2:
+        if level(0) % 3 == 0:
             probability = 0.0400
             laser_prob_start = 0.0100
             fireChance = random.random()
