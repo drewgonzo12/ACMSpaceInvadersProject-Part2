@@ -357,9 +357,9 @@ class Player(pygame.sprite.Sprite):
         self.ultThreshold = None
         if self.ultimateSelected == 0:
             self.ultThreshold = 13
-        elif ultimateSelected == 1:
+        elif self.ultimateSelected == 1:
             self.ultThreshold = 15
-        elif ultimateSelected == 2:
+        elif self.ultimateSelected == 2:
             self.ultThreshold = 20
 
     def update(self):
@@ -733,7 +733,7 @@ def game_loop():
     game_over = True
     enemyCount = len(aliens.sprites())
     aliensDead = 0
-    alienKilledUltCounter = 0
+    ult_counter = 0
 
     while running:
         if game_over:
@@ -744,15 +744,9 @@ def game_loop():
             if event.type == pygame.QUIT:
                 pygame.quit()
 
-        # Checking ultimate abilities
-        if player.ultUsed:
-            if not player.zawarudo:
-                alienKilledUltCounter = 0
-                player.ultUsed = False
-            if not player.godMode:
-                alienKilledUltCounter = 0
-                player.ultUsed = False
+        # -------------Checking ultimate abilities-------------
 
+        # Undo Za Warudo ability
         if player.kills > 6:
             for alien in aliens:
                 alien.zawarudo = False
@@ -760,13 +754,27 @@ def game_loop():
                 self.zawarudo = False
             player.undo_za_warudo()
 
+        # Start Za Warudo Ability
         if player.zawarudo and player.kills <= 0:
             for alien in aliens:
                 alien.zawarudo = True
             for self in enemy_bullets:
                 self.zawarudo = True
 
-        if alienKilledUltCounter == player.ultThreshold:
+        # Controls resetting or ability counter
+        if player.ultUsed:
+            if player.ultimateSelected == 0:
+                ult_counter = 0
+                player.ultUsed = False
+            if player.ultimateSelected == 1 and not player.godMode:
+                ult_counter = 0
+                player.ultUsed = False
+            if player.ultimateSelected == 2 and not player.zawarudo:
+                ult_counter = 0
+                player.ultUsed = False
+
+        # Turns on player ability
+        if not player.ultUsed and ult_counter >= player.ultThreshold:
             player.ultReady = True
 
         if level(0) % 3 == 0:
@@ -807,7 +815,7 @@ def game_loop():
                 explb = Explosion(boss.rect.center, 'aliens')
                 all_sprites.add(explb)
                 boss.health -= 10
-                alienKilledUltCounter += 1
+                ult_counter += 1
                 if player.zawarudo:
                     player.kills += 1.5
 
@@ -874,7 +882,7 @@ def game_loop():
                     aliens.remove(alien)
                     enemies.remove(alien)
                     aliensDead += 1
-                    alienKilledUltCounter += 1
+                    ult_counter += 1
                     if player.zawarudo:
                         player.kills += 1
 
