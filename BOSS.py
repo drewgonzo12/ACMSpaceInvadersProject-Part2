@@ -35,7 +35,8 @@ pygame.display.set_caption("Space Invaders")
 background = pygame.image.load(path.join(img_dir, "night.jpg")).convert()
 background = pygame.transform.scale(background, (500, 600))
 player_img = pygame.image.load(path.join(img_dir, "ship2.png")).convert_alpha()
-player_img_godmode = pygame.image.load(path.join(img_dir, "ship2GM.png")).convert_alpha()
+player_img_bulletstop = pygame.image.load(path.join(img_dir, "ship2BulletStop.png")).convert_alpha()
+player_img_godmode = pygame.image.load(path.join(img_dir, "ship2GodMode.png")).convert_alpha()
 boss1_img = pygame.image.load(path.join(img_dir, "boss1.gif")).convert_alpha()
 player_bullet_img = pygame.image.load(path.join(img_dir, "rocket.png")).convert_alpha()
 player_ultimate_img = pygame.image.load(path.join(img_dir, "ult.png")).convert_alpha()
@@ -60,7 +61,7 @@ pygame_die_sound = pygame.mixer.Sound(path.join(snd_dir, 'rumble1.ogg'))
 # Non final global variables
 font_name = pygame.font.match_font('arial')
 Level_Difficulty = 0
-Player_Ability = 2
+Player_Ability = 0
 
 
 # -------------------This will ask for username-----------------------------------
@@ -351,15 +352,11 @@ class Player(pygame.sprite.Sprite):
         self.ultReady = False
         self.ultUsed = False
         self.godMode = False
-        self.zawurdo = False
         self.ultThreshold = None
         if self.ultimateSelected == 0:
             self.ultThreshold = 10
         elif ultimateSelected == 1:
             self.ultThreshold = 15
-        # Grover Update
-        elif ultimateSelected == 2:
-            self.ultThreshold = 25
 
     def update(self):
 
@@ -396,9 +393,6 @@ class Player(pygame.sprite.Sprite):
                         self.multi_bullet()
                     elif self.ultimateSelected == 1:
                         self.invincible()
-                    # Grover Update
-                    elif self.ultimateSelected == 2:
-                        self.timeStop()
             if keystate[pygame.K_LEFT]:
                 self.speedx = -5
             if keystate[pygame.K_RIGHT]:
@@ -450,14 +444,6 @@ class Player(pygame.sprite.Sprite):
 
     def undo_invincible(self):
         self.godMode = False
-        self.image = pygame.transform.scale(player_img, (25, 25))
-
-    def timeStop(self):
-        self.zawurdo = True
-        self.image = pygame.transform.scale(player_img_godmode, (25, 25))
-
-    def undoTimeStop(self):
-        self.zawurdo = False
         self.image = pygame.transform.scale(player_img, (25, 25))
 
 
@@ -573,7 +559,6 @@ class Aliens(pygame.sprite.Sprite):
         self.rect.y = y
         self.speedx = 1
         self.score = 15
-        self.zawurdo = False
         if self.enemy_type == 11:
             self.score = 1000
         # Added this enemy "state" to tell whether the enemy will move randomly or not
@@ -654,13 +639,9 @@ class EnemyBullet(pygame.sprite.Sprite):
         self.rect.x = x - 9
         self.rect.y = y - 10
         self.speedy = 4
-        self.zawurdo = False
 
     def update(self):
-        if not self.zawurdo:
-            self.rect.y += self.speedy
-        else:
-            self.rect.y += 0
+        self.rect.y += self.speedy
         if self.rect.y > 600:
             self.kill()
 
@@ -742,10 +723,6 @@ def game_loop():
         # Checking ultimate abilities
         if player.ultUsed:
             if not player.godMode:
-                alienKilledUltCounter = 0
-                player.ultUsed = False
-            # Grover Update
-            if not player.zawurdo:
                 alienKilledUltCounter = 0
                 player.ultUsed = False
 
@@ -1004,22 +981,13 @@ def game_loop():
 
             # -------------------------------Enemy bullet creation---------------------------
             for enemy in enemies:
-                if enemy.zawurdo:
-                    fireChance = 0
-                    if (fireChance <= probability and not enemy.is_dead):
-                        x = enemy.rect.x
-                        y = enemy.rect.y
-                        enemy_bullet = EnemyBullet(enemy.rect.x, y)
-                        enemy_bullets.add(enemy_bullet)
-                        enemy.shoot()
-                else:
-                    fireChance = random.random()
-                    if (fireChance <= probability and not enemy.is_dead):
-                        x = enemy.rect.x
-                        y = enemy.rect.y
-                        enemy_bullet = EnemyBullet(enemy.rect.x, y)
-                        enemy_bullets.add(enemy_bullet)
-                        enemy.shoot()
+                fireChance = random.random()
+                if (fireChance <= probability and not enemy.is_dead):
+                    x = enemy.rect.x
+                    y = enemy.rect.y
+                    enemy_bullet = EnemyBullet(enemy.rect.x, y)
+                    enemy_bullets.add(enemy_bullet)
+                    enemy.shoot()
                 if enemy.rect.y > player.rect.bottom:
                     pygame_die_sound.play()
                     death_explosion2 = Explosion(player.rect.center, 'player')
@@ -1085,3 +1053,4 @@ all_sprites.add(player)
 username = ask(screen, "Enter Name")
 game_loop()
 pygame.quit()
+
