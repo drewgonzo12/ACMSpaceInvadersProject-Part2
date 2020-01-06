@@ -61,7 +61,7 @@ pygame_die_sound = pygame.mixer.Sound(path.join(snd_dir, 'rumble1.ogg'))
 # Non final global variables
 font_name = pygame.font.match_font('arial')
 Level_Difficulty = 0
-Player_Ability = 0
+Player_Ability = 2
 
 
 # -------------------This will ask for username-----------------------------------
@@ -352,11 +352,15 @@ class Player(pygame.sprite.Sprite):
         self.ultReady = False
         self.ultUsed = False
         self.godMode = False
+        self.zawarudo = False
+        self.kills = 0
         self.ultThreshold = None
         if self.ultimateSelected == 0:
             self.ultThreshold = 10
         elif ultimateSelected == 1:
             self.ultThreshold = 15
+        elif ultimateSelected == 2:
+            self.ultThreshold = 20
 
     def update(self):
 
@@ -393,6 +397,8 @@ class Player(pygame.sprite.Sprite):
                         self.multi_bullet()
                     elif self.ultimateSelected == 1:
                         self.invincible()
+                    elif self.ultimateSelected == 2:
+                        self.bullet_stop()
             if keystate[pygame.K_LEFT]:
                 self.speedx = -5
             if keystate[pygame.K_RIGHT]:
@@ -446,6 +452,15 @@ class Player(pygame.sprite.Sprite):
         self.godMode = False
         self.image = pygame.transform.scale(player_img, (25, 25))
 
+    def bullet_stop(self):
+        self.zawarudo = True
+        self.image = pygame.transform.scale(player_img_bulletstop, (25, 25))
+
+    def undo_bullet_stop(self):
+        self.zawarudo = False
+        self.kills = 0
+        self.image = self.image = pygame.transform.scale(player_img, (25, 25))
+
 
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y, isUltimate):
@@ -482,16 +497,18 @@ class Boss(pygame.sprite.Sprite):
         self.is_dead = True
         self.shoot_delay = 10000
         self.last_shot = pygame.time.get_ticks()
-        self.health = 500
+        self.health = 600
         self.count = 7
+        self.zawarudo = False
 
     def update(self):
 
-        if self.rect.x != player.rect.x:
-            if self.rect.centerx < player.rect.centerx:
-                self.rect.x += self.speedx
-            else:
-                self.rect.x -= self.speedx
+        if not self.zawarudo:
+            if self.rect.x != player.rect.x:
+                if self.rect.centerx < player.rect.centerx:
+                    self.rect.x += self.speedx
+                else:
+                    self.rect.x -= self.speedx
 
         if self.rect.x > WIDTH - 149:
             self.rect.x = WIDTH - 149
@@ -500,25 +517,27 @@ class Boss(pygame.sprite.Sprite):
             self.rect.x = 0
 
     def laser(self):
-        bullet1 = EnemyBullet(self.rect.centerx, self.rect.top + 50)
-        all_sprites.add(bullet1)
-        enemy_bullets.add(bullet1)
-        self.count -= 1
+        if not self.zawarudo:
+            bullet1 = EnemyBullet(self.rect.centerx, self.rect.top + 50)
+            all_sprites.add(bullet1)
+            enemy_bullets.add(bullet1)
+            self.count -= 1
 
     def shoot(self):
-        bullet1 = EnemyBullet(self.rect.centerx - 60, self.rect.bottom - 55)
-        bullet2 = EnemyBullet(self.rect.centerx - 50, self.rect.bottom - 55)
-        bullet3 = EnemyBullet(self.rect.centerx + 50, self.rect.bottom - 55)
-        bullet4 = EnemyBullet(self.rect.centerx + 40, self.rect.bottom - 55)
-        all_sprites.add(bullet1)
-        enemy_bullets.add(bullet1)
-        all_sprites.add(bullet2)
-        enemy_bullets.add(bullet2)
-        all_sprites.add(bullet3)
-        enemy_bullets.add(bullet3)
-        all_sprites.add(bullet4)
-        enemy_bullets.add(bullet4)
-        enemy_shoot_sound.play()
+        if not self.zawarudo:
+            bullet1 = EnemyBullet(self.rect.centerx - 60, self.rect.bottom - 55)
+            bullet2 = EnemyBullet(self.rect.centerx - 50, self.rect.bottom - 55)
+            bullet3 = EnemyBullet(self.rect.centerx + 50, self.rect.bottom - 55)
+            bullet4 = EnemyBullet(self.rect.centerx + 40, self.rect.bottom - 55)
+            all_sprites.add(bullet1)
+            enemy_bullets.add(bullet1)
+            all_sprites.add(bullet2)
+            enemy_bullets.add(bullet2)
+            all_sprites.add(bullet3)
+            enemy_bullets.add(bullet3)
+            all_sprites.add(bullet4)
+            enemy_bullets.add(bullet4)
+            enemy_shoot_sound.play()
 
 
 class Barrier(pygame.sprite.Sprite):
@@ -559,6 +578,7 @@ class Aliens(pygame.sprite.Sprite):
         self.rect.y = y
         self.speedx = 1
         self.score = 15
+        self.zawarudo = False
         if self.enemy_type == 11:
             self.score = 1000
         # Added this enemy "state" to tell whether the enemy will move randomly or not
@@ -583,7 +603,8 @@ class Aliens(pygame.sprite.Sprite):
     def update(self):
         # If statement is added so when the aliens "state" is set to True
         # The aliens will no longer drop down in sync
-        self.rect.x += self.speedx
+        if not self.zawarudo:
+            self.rect.x += self.speedx
         if self.state == False:
             if self.rect.x > WIDTH - 15:
                 self.rect.x = WIDTH - 15
@@ -623,10 +644,11 @@ class Aliens(pygame.sprite.Sprite):
                         self.rect.y += 5
 
     def shoot(self):
-        bullet = EnemyBullet(self.rect.centerx, self.rect.top)
-        all_sprites.add(bullet)
-        enemy_bullets.add(bullet)
-        enemy_shoot_sound.play
+        if not self.zawarudo:
+            bullet = EnemyBullet(self.rect.centerx, self.rect.top)
+            all_sprites.add(bullet)
+            enemy_bullets.add(bullet)
+            enemy_shoot_sound.play
 
 
 class EnemyBullet(pygame.sprite.Sprite):
@@ -639,9 +661,11 @@ class EnemyBullet(pygame.sprite.Sprite):
         self.rect.x = x - 9
         self.rect.y = y - 10
         self.speedy = 4
+        self.zawarudo = False
 
     def update(self):
-        self.rect.y += self.speedy
+        if not self.zawarudo:
+            self.rect.y += self.speedy
         if self.rect.y > 600:
             self.kill()
 
@@ -722,9 +746,25 @@ def game_loop():
 
         # Checking ultimate abilities
         if player.ultUsed:
+            if not player.zawarudo:
+                alienKilledUltCounter = 0
+                player.ultUsed = False
             if not player.godMode:
                 alienKilledUltCounter = 0
                 player.ultUsed = False
+
+        if player.kills > 6:
+            for alien in aliens:
+                alien.zawarudo = False
+            for self in enemy_bullets:
+                self.zawarudo = False
+            player.undo_bullet_stop()
+
+        if player.zawarudo and player.kills <= 0:
+            for alien in aliens:
+                alien.zawarudo = True
+            for self in enemy_bullets:
+                self.zawarudo = True
 
         if alienKilledUltCounter == player.ultThreshold:
             player.ultReady = True
@@ -768,6 +808,8 @@ def game_loop():
                 all_sprites.add(explb)
                 boss.health -= 10
                 alienKilledUltCounter += 1
+                if player.zawarudo:
+                    player.kills += 2
 
             # -------------------------------Player colliding with boss bullets---------------------------
             hits = pygame.sprite.spritecollide(player, enemy_bullets, False, pygame.sprite.collide_circle)
@@ -833,6 +875,8 @@ def game_loop():
                     enemies.remove(alien)
                     aliensDead += 1
                     alienKilledUltCounter += 1
+                    if player.zawarudo:
+                        player.kills += 1
 
                     if aliensDead == enemyCount / 2:
                         for alien in aliens:
