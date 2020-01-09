@@ -142,11 +142,6 @@ def update_scores(sorted):
     top_scores = sorted
 
 
-def printET():
-    for enemy in enemies1:
-        print(enemy.enemy_type)
-
-
 # ----------- Function used for drawing text on screen ------------
 def draw_text(surf, text, size, x, y, color):
     font = pygame.font.Font(font_name, size)
@@ -202,7 +197,7 @@ enemies = []
 enemies1 = []
 
 
-def make_Enemies():
+def make_enemies():
     y = 50
     count = 0
     for i in range(rows_of_enemies):
@@ -287,11 +282,11 @@ def reset_enemies():
             enemy.speedx = 1
             enemy.enemy_type = random_enemy_type
     else:
+        boss.reset()
         enemies.append(boss)
         all_sprites.add(boss)
         aliens.add(boss)
         reset_barriers(False)
-        boss.is_dead = False
 
 
 # -----------------------------------------------------------------
@@ -497,6 +492,7 @@ class Boss(pygame.sprite.Sprite):
         self.is_dead = True
         self.shoot_delay = 10000
         self.last_shot = pygame.time.get_ticks()
+        self.start_health = 650
         self.health = 650
         self.count = 7
         self.zawarudo = False
@@ -538,6 +534,11 @@ class Boss(pygame.sprite.Sprite):
             all_sprites.add(bullet4)
             enemy_bullets.add(bullet4)
             enemy_shoot_sound.play()
+
+    def reset(self):
+        self.start_health += 100
+        self.health = self.start_health
+        self.is_dead = False
 
 
 class Barrier(pygame.sprite.Sprite):
@@ -1098,7 +1099,7 @@ player_bullets = pygame.sprite.Group()
 enemy_bullets = pygame.sprite.Group()
 barriers = pygame.sprite.Group()
 boss = Boss()
-make_Enemies()
+make_enemies()
 make_barriers()
 player = Player(Player_Ability)
 all_sprites.add(player)
