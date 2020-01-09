@@ -1,10 +1,5 @@
+test8 3286
+test5 2734
 test0 2195
 test1 2032
 test4 1970
-test5 2734
-test6 1732
-test7 1845
-test8 3286
-test9 1734
-test10 1740
-zawarudoTest 1277
