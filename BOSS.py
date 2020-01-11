@@ -4,6 +4,9 @@ import time
 import collections
 from os import path
 from pygame.locals import *
+import os
+from tkinter import *
+from PIL import Image, ImageTk  # python -m pip install pillow to cmd
 
 WIDTH = 460
 HEIGHT = 600
@@ -60,8 +63,24 @@ pygame_die_sound = pygame.mixer.Sound(path.join(snd_dir, 'rumble1.ogg'))
 
 # Non final global variables
 font_name = pygame.font.match_font('arial')
-Level_Difficulty = 0
-Player_Ability = 2
+
+
+# -------------------GUI Methods----------------------
+def set_difficulty(diff):
+    player.difficulty = diff
+
+
+def set_ability(ability):
+    player.ultimateSelected = ability
+    player.set_threshold()
+
+
+def start_game_elements():
+    player.user = e1.get('1.0', 'end-1c')
+    if player.user == "":
+        player.user = "SI-Player"
+    make_barriers()
+    window.destroy()
 
 
 # -------------------This will ask for username-----------------------------------
@@ -219,29 +238,23 @@ def make_enemies():
 # -----------------------------------------------------------------
 # --------------------- make barriers ------------------------------
 def make_barriers():
-    barrier_arr = []
-
-    if Level_Difficulty == 0:
+    if player.difficulty == 0:
         barrier_start = 25
         for i in range(5):
-            barrier_arr.append(Barrier(barrier_start, 500))
+            b = Barrier(barrier_start, 500)
+            barriers.add(b)
+            all_sprites.add(b)
             barrier_start += 90
 
-        for b in barrier_arr:
-            barriers.add(b)
-            all_sprites.add(b)
-
-    elif Level_Difficulty == 1:
+    elif player.difficulty == 1:
         barrier_start = 95
         for i in range(3):
-            barrier_arr.append(Barrier(barrier_start, 500))
-            barrier_start += 110
-
-        for b in barrier_arr:
+            b = Barrier(barrier_start, 500)
             barriers.add(b)
             all_sprites.add(b)
+            barrier_start += 110
 
-    elif Level_Difficulty == 2:
+    elif player.difficulty == 2:
         barrier1 = Barrier(205, 500)
         barriers.add(barrier1)
         all_sprites.add(barrier1)
@@ -265,7 +278,11 @@ def reset_barriers(creation_toggle):
 # --------- this block is for resetting enemies -------------------
 
 def reset_enemies():
-    if (level(0) + 1) % 3 != 0:
+    if (level(0) + 1) <= 1:
+        reset_barriers(True)
+        make_enemies()
+    elif (level(0) + 1) % 3 != 0 and (level(0) + 1) >= 2:
+        reset_barriers(True)
         for enemy in enemies1:
             # Added the following 2 lines of code for getting a random int
             # and passing it to the random_enemy_type function inside the Aliens class
@@ -283,10 +300,11 @@ def reset_enemies():
             enemy.enemy_type = random_enemy_type
     else:
         boss.reset()
+        reset_barriers(False)
         enemies.append(boss)
         all_sprites.add(boss)
         aliens.add(boss)
-        reset_barriers(False)
+
 
 
 # -----------------------------------------------------------------
@@ -297,7 +315,6 @@ def level_change():
     start_time = int(time.time()) + 6
     player.rect.centerx = WIDTH / 2
     player.rect.bottom = HEIGHT - 30
-    reset_barriers(True)
     while alive:
         passed_time = start_time - int(time.time())
         if passed_time == 0:
@@ -330,7 +347,7 @@ def show_go_screen():
 
 class Player(pygame.sprite.Sprite):
 
-    def __init__(self, ultimateSelected):
+    def __init__(self):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.transform.scale(player_img, (25, 25))
         self.rect = self.image.get_rect()
@@ -341,21 +358,17 @@ class Player(pygame.sprite.Sprite):
         self.shoot_delay = 250
         self.last_shot = pygame.time.get_ticks()
         self.lives = 3
+        self.user = "SI-Player"
         self.hidden = False
         self.hide_timer = pygame.time.get_ticks()
-        self.ultimateSelected = ultimateSelected
+        self.difficulty = 0
+        self.ultimateSelected = 0
+        self.ultThreshold = 0
         self.ultReady = False
         self.ultUsed = False
         self.godMode = False
         self.zawarudo = False
         self.kills = 0
-        self.ultThreshold = None
-        if self.ultimateSelected == 0:
-            self.ultThreshold = 13
-        elif self.ultimateSelected == 1:
-            self.ultThreshold = 15
-        elif self.ultimateSelected == 2:
-            self.ultThreshold = 20
 
     def update(self):
 
@@ -455,6 +468,14 @@ class Player(pygame.sprite.Sprite):
         self.zawarudo = False
         self.kills = 0
         self.image = self.image = pygame.transform.scale(player_img, (25, 25))
+
+    def set_threshold(self):
+        if self.ultimateSelected == 0:
+            self.ultThreshold = 13
+        elif self.ultimateSelected == 1:
+            self.ultThreshold = 15
+        elif self.ultimateSelected == 2:
+            self.ultThreshold = 20
 
 
 class Bullet(pygame.sprite.Sprite):
@@ -606,7 +627,7 @@ class Aliens(pygame.sprite.Sprite):
         # The aliens will no longer drop down in sync
         if not self.zawarudo:
             self.rect.x += self.speedx
-        if self.state == False:
+        if not self.state:
             if self.rect.x > WIDTH - 15:
                 self.rect.x = WIDTH - 15
                 for self in enemies:
@@ -723,11 +744,11 @@ for i in range(9):
 
 def game_loop():
     probability = 0
-    if Level_Difficulty == 0:
+    if player.difficulty == 0:
         probability = 0.0001
-    elif Level_Difficulty == 1:
+    elif player.difficulty == 1:
         probability = 0.0004
-    elif Level_Difficulty == 2:
+    elif player.difficulty == 2:
         probability = 0.0007
 
     running = True
@@ -781,13 +802,13 @@ def game_loop():
         if level(0) % 3 == 0:
             probability = 0.0400
             laser_prob_start = 0.0100
-            fireChance = random.random()
-            if fireChance <= probability and not boss.is_dead:
+            fire_chance = random.random()
+            if fire_chance <= probability and not boss.is_dead:
                 boss.shoot()
-            fireChance = random.random()
+            fire_chance = random.random()
             if boss.count > 0:
                 boss.laser()
-            elif fireChance <= laser_prob_start and not boss.is_dead:
+            elif fire_chance <= laser_prob_start and not boss.is_dead:
                 boss.count = 7
                 boss.laser()
 
@@ -842,7 +863,7 @@ def game_loop():
                     for self in enemy_bullets:
                         self.kill()
 
-            if player.lives == 0:
+            if player.lives <= 0:
                 player.lives = 3
                 running = False
                 screen.fill(BLACK)
@@ -860,11 +881,8 @@ def game_loop():
                     enemies.remove(alien)
                 score(-1)
                 level(-1)
-                pygame.time.wait(4000)
+                pygame.time.wait(3000)
                 reset_enemies()
-                screen.fill(BLACK)
-                pygame.display.flip()
-                username = ask(screen, "Enter Name")
                 game_loop()
 
         else:
@@ -891,11 +909,11 @@ def game_loop():
                         for alien in aliens:
                             alien.speedx *= 2
 
-                            if Level_Difficulty == 0:
+                            if player.difficulty == 0:
                                 probability = 0.0004
-                            elif Level_Difficulty == 1:
+                            elif player.difficulty == 1:
                                 probability = 0.0007
-                            elif Level_Difficulty == 2:
+                            elif player.difficulty == 2:
                                 probability = 0.0010
 
                             boolean_value = random.randint(0, 1)
@@ -913,21 +931,21 @@ def game_loop():
                     if aliensDead == (3 * enemyCount) / 4:
                         for alien in aliens:
                             alien.speedx *= 3 / 2
-                            if Level_Difficulty == 0:
+                            if player.difficulty == 0:
                                 probability = .001
-                            elif Level_Difficulty == 1:
+                            elif player.difficulty == 1:
                                 probability = .004
-                            elif Level_Difficulty == 2:
+                            elif player.difficulty == 2:
                                 probability = .007
 
                     if aliensDead == enemyCount - 1:
                         for alien in aliens:
                             alien.speedx *= 5 / 3
-                            if Level_Difficulty == 0:
+                            if player.difficulty == 0:
                                 probability = .015
-                            elif Level_Difficulty == 1:
+                            elif player.difficulty == 1:
                                 probability = .045
-                            elif Level_Difficulty == 2:
+                            elif player.difficulty == 2:
                                 probability = .075
 
                     if not enemies:
@@ -965,11 +983,8 @@ def game_loop():
                 show_scores(score(0))
                 score(-1)
                 pygame.display.flip()
-                pygame.time.wait(4000)
+                pygame.time.wait(3000)
                 reset_enemies()
-                screen.fill(BLACK)
-                pygame.display.flip()
-                username = ask(screen, "Enter Name")
                 game_loop()
 
             # -------------------------------Player colliding with enemy bullets---------------------------
@@ -994,7 +1009,7 @@ def game_loop():
                     for self in enemy_bullets:
                         self.kill()
 
-            if player.lives == 0:
+            if player.lives <= 0:
                 player.lives = 3
                 running = False
                 screen.fill(BLACK)
@@ -1012,11 +1027,8 @@ def game_loop():
                     enemies.remove(alien)
                 score(-1)
                 level(-1)
-                pygame.time.wait(4000)
+                pygame.time.wait(3000)
                 reset_enemies()
-                screen.fill(BLACK)
-                pygame.display.flip()
-                username = ask(screen, "Enter Name")
                 game_loop()
 
             for barrier in barriers:
@@ -1034,8 +1046,8 @@ def game_loop():
 
             # -------------------------------Enemy bullet creation---------------------------
             for enemy in enemies:
-                fireChance = random.random()
-                if (fireChance <= probability and not enemy.is_dead):
+                fire_chance = random.random()
+                if fire_chance <= probability and not enemy.is_dead:
                     x = enemy.rect.x
                     y = enemy.rect.y
                     enemy_bullet = EnemyBullet(enemy.rect.x, y)
@@ -1067,11 +1079,8 @@ def game_loop():
                     show_scores(score(0))
                     score(-1)
                     pygame.display.flip()
-                    pygame.time.wait(4000)
+                    pygame.time.wait(3000)
                     reset_enemies()
-                    screen.fill(BLACK)
-                    pygame.display.flip()
-                    username = ask(screen, "Enter Name")
                     game_loop()
 
         screen.blit(background, (0, 0))
@@ -1100,9 +1109,53 @@ enemy_bullets = pygame.sprite.Group()
 barriers = pygame.sprite.Group()
 boss = Boss()
 make_enemies()
-make_barriers()
-player = Player(Player_Ability)
+player = Player()
 all_sprites.add(player)
-username = ask(screen, "Enter Name")
+
+# ---------------------------------GUI Elements----------------------------------------------------------
+window = Tk()
+window.geometry("460x600")
+window.title("SPACE INVADERS!")
+
+# this block of code MUST come after window = Tk(), not before----
+imge1 = Image.open(str(os.getcwd()) + "\\img\\ast.png")
+photo1 = ImageTk.PhotoImage(imge1)
+lab1 = Label(image=photo1)
+lab1.pack()
+label2 = Label(window, text="Username :", width=20, font=("arial", 10, "bold"))
+label2.place(x=80, y=200)
+e1 = Text(window, width=20, height=1, font=("arial", 10, "bold"))
+e1.place(x=240, y=200)
+label3 = Label(window, text="Select Your Ship", width=20, font=("arial", 10, "bold"))
+label3.place(x=80, y=255)
+
+# ship selection
+ship1photo = PhotoImage(file=str(os.getcwd()) + "\\img\\shse1.png")
+ship2photo = PhotoImage(file=str(os.getcwd()) + "\\img\\shse2.png")
+ship3photo = PhotoImage(file=str(os.getcwd()) + "\\img\\shse3.png")
+
+sop1 = Button(window, text='Multi Shot', image=ship1photo, command=lambda: set_ability(0))
+sop1.place(x=94, y=300)
+sop2 = Button(window, text='Invincibility', image=ship2photo, command=lambda: set_ability(1))
+sop2.place(x=197.5, y=300)
+sop3 = Button(window, text='Za Warudo', image=ship3photo, command=lambda: set_ability(2))
+sop3.place(x=310, y=300)
+label4 = Label(window, text="Select Difficulty", width=20, font=("arial", 10, "bold"))
+label4.place(x=80, y=390)
+
+# buttons for controlling difficulty
+diff_1 = Button(window, text="EASY", width=12, bg='green', fg='papayawhip', command=lambda: set_difficulty(0))
+diff_1.place(x=55, y=445)
+diff_2 = Button(window, text="MEDIUM", width=12, bg='#ffcc00', fg='white', command=lambda: set_difficulty(1))
+diff_2.place(x=180, y=445)
+diff_3 = Button(window, text="HARD", width=12, bg='red', fg='papayawhip', command=lambda: set_difficulty(2))
+diff_3.place(x=310, y=445)
+start = Button(window, text="Start game", width=12, bg='gray', fg='papayawhip',
+               command=start_game_elements)
+start.place(x=180, y=550)
+window.mainloop()
+# ------------------------------------------------------------------------------------------------------------
+
+username = player.user
 game_loop()
 pygame.quit()
