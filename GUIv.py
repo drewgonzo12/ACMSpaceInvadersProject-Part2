@@ -59,5 +59,18 @@ diff_3.place(x=310, y=445)
 start = Button(window, text="Start game", width=12, bg='gray', fg='papayawhip', command=exit1)
 start.place(x=180, y=550)
 
-window.mainloop()
 
+# buttons for controlling difficulty
+diff_1 = Button(window, text="EASY", width=12, bg='green', fg='papayawhip', command=lambda: print)
+diff_1.place(x=55, y=445)
+
+diff_2 = Button(window, text="MEDIUM", width=12, bg='#ffcc00', fg='white', command=lambda: print)
+diff_2.place(x=180, y=445)
+
+diff_3 = Button(window, text="HARD", width=12, bg='red', fg='papayawhip', command=lambda: print)
+diff_3.place(x=310, y=445)
+
+start = Button(window, text="Start game", width=12, bg='gray', fg='papayawhip', command=exit1)
+start.place(x=180, y=550)
+
+window.mainloop()
