@@ -305,7 +305,6 @@ def reset_enemies():
         all_sprites.add(boss)
         aliens.add(boss)
 
-
 # -----------------------------------------------------------------
 
 # --------- this block is for when the game level changes ---------
