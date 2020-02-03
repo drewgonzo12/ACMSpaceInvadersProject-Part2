@@ -174,7 +174,6 @@ class Player(pygame.sprite.Sprite):
 		self.image = pygame.transform.scale(player_img, (25, 25))
 		self.rect = self.image.get_rect()
 		self.radius = int(self.rect.width/3)
-#		pygame.draw.circle(self.image, RED, self.rect.center, self.radius)
 		self.rect.centerx = WIDTH/2
 		self.rect.bottom = HEIGHT - 30
 		self.speedx = 0
@@ -202,7 +201,6 @@ class Player(pygame.sprite.Sprite):
 				self.speedx = 5
 			if keystate[pygame.K_SPACE]:
 				self.shoot()
-		#Must move this inside once if using the bullets.kill() otherwise error will occur since there wont be any bullets for "self"
 			self.rect.x += self.speedx
 		if self.rect.right > WIDTH:
 			self.rect.right = WIDTH
@@ -231,7 +229,6 @@ class Bullet(pygame.sprite.Sprite):
 		self.image = pygame.transform.scale(self.image, (20, 20))
 		self.rect = self.image.get_rect()
 		self.radius = int(self.rect.width/6)
-#		pygame.draw.circle(self.image, RED, self.rect.center, self.radius)
 		self.rect.x = x - 9
 		self.rect.y = y - 10
 		self.speedy = -4
@@ -252,7 +249,6 @@ class Aliens(pygame.sprite.Sprite):
 		self.image = pygame.transform.scale(self.image, (16, 16))
 		self.rect = self.image.get_rect()	
 		self.radius = int(self.rect.width/3)
-#		pygame.draw.circle(self.image, RED, self.rect.center, self.radius)
 		self.rect.x = x
 		self.rect.y = y
 		self.speedx = 1
@@ -292,7 +288,6 @@ class EnemyBullet(pygame.sprite.Sprite):
 		self.image = pygame.transform.scale(self.image, (20, 30))
 		self.rect = self.image.get_rect()
 		self.radius = int(self.rect.width/6)
-#		pygame.draw.circle(self.image, RED, self.rect.center, self.radius)
 		self.rect.x = x - 9
 		self.rect.y = y - 10
 		self.speedy = 4
@@ -422,7 +417,6 @@ def game_loop():
 				enemies.clear()			
 				level(-1)
 				score(-1)
-#			pygame.time.wait(100)
 			done = True
 			running = False
 						
