@@ -58,7 +58,7 @@ def draw_text(surf, text, size, x, y, color):
 	text_rect = text_surface.get_rect()
 	text_rect.midtop = (x, y)
 	surf.blit(text_surface, text_rect)
-#-----------------------------------------------------------------
+
 	
 #----------------- draw function for lives -----------------------
 def draw_lives(surf, x, y, lives, img):
@@ -67,8 +67,8 @@ def draw_lives(surf, x, y, lives, img):
 		img_rect.x = x + 25* i
 		img_rect.y = y + 10
 		surf.blit(img, img_rect)
-#-----------------------------------------------------------------
-	
+
+#this function keeps track of the score
 def score(s):
 	if s < 0:
 		score.x = 0
@@ -81,7 +81,7 @@ score.x = 0
 
 
 
-
+#Function that keeps track of level
 def level(L):
 	if L < 0:
 		level.x = 0
@@ -120,7 +120,7 @@ def make_Enemies():
 	for i in enemies:
 		all_sprites.add(i)
 		aliens.add(i)
-#-----------------------------------------------------------------
+
 
 #--------- this block is for when the game level changes ---------
 def level_change():
@@ -145,7 +145,7 @@ def level_change():
 	pygame.display.update()	
 	pygame.display.flip()
 	game_loop()
-#-----------------------------------------------------------------
+
 
 #---- this block is for the start screen and to begin new levels ----
 def show_go_screen():
@@ -167,9 +167,13 @@ def show_go_screen():
 				break
 #---------------------------------------------------------------------
 
+# This is the player class, 
 class Player(pygame.sprite.Sprite):
 	
+	#This is the init fucntion of player works similar to constructor from Java 
+	#the keyword self is similar to 'this' from java
 	def __init__(self):
+		#Player is initiated as a sprite in pygame
 		pygame.sprite.Sprite.__init__(self)
 		self.image = pygame.transform.scale(player_img, (25, 25))
 		self.rect = self.image.get_rect()
@@ -182,7 +186,8 @@ class Player(pygame.sprite.Sprite):
 		self.lives = 3
 		self.hidden = False
 		self.hide_timer = pygame.time.get_ticks()	
-			
+	
+	#update method in player class is called every tick (60 times a second) and updates the player
 	def update(self):
 		if self.hidden and pygame.time.get_ticks() - self.hide_timer > 1800:
 			self.hidden = False
@@ -194,6 +199,7 @@ class Player(pygame.sprite.Sprite):
 			for self in enemy_bullets:
 				self.kill()
 		else:
+			#Keystate is what detects when a key is pressed on the keyboard
 			keystate = pygame.key.get_pressed()
 			if keystate[pygame.K_LEFT]:
 				self.speedx = -5
@@ -206,7 +212,8 @@ class Player(pygame.sprite.Sprite):
 			self.rect.right = WIDTH
 		if self.rect.left < 0:
 			self.rect.left = 0
-
+	
+	#method that is called a player pressess spacebar
 	def shoot(self):
 		now = pygame.time.get_ticks()
 		if now - self.last_shot > self.shoot_delay:
@@ -216,12 +223,13 @@ class Player(pygame.sprite.Sprite):
 			player_bullets.add(bullet)
 			shoot_sound.play()
 			
+	#Hides the player when changing level or player dies	
 	def hide(self):
 		self.hidden = True 
 		self.hide_timer = pygame.time.get_ticks()
 		self.rect.center = (WIDTH/2, HEIGHT + 200)
 		
-
+#Bullet class for player, every time player pressess space a bullet is created 
 class Bullet(pygame.sprite.Sprite):
 	def __init__(self, x, y):
 		pygame.sprite.Sprite.__init__(self)
@@ -233,11 +241,13 @@ class Bullet(pygame.sprite.Sprite):
 		self.rect.y = y - 10
 		self.speedy = -4
 	
+	#Bullet update method that changes bullet's position
 	def update(self):
 		self.rect.y += self.speedy
 		if self.rect.y < 0:
 			self.kill()
-		
+
+			
 class Aliens(pygame.sprite.Sprite):
 	
 	def __init__(self, x, y, enemy_type):
