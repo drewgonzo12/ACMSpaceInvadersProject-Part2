@@ -158,7 +158,7 @@ def level_change():
 def show_go_screen():
     pygame.time.wait(100)
     screen.fill(BLACK)
-    draw_text(screen, "SPACE INVADERS!", 62, WIDTH / 2, HEIGHT / 6, YELLOW)
+    draw_text(screen, "SPACE INVADERS!", 50, WIDTH / 2, HEIGHT / 6, YELLOW)
     draw_text(screen, "Arrow keys to move, SPACE to fire weapon", 22, WIDTH / 2, HEIGHT / 3, WHITE)
     draw_text(screen, "Press a key to begin", 18, WIDTH / 2, HEIGHT * 3 / 4, WHITE)
     draw_text(screen, "Level: " + str(level(1)), 40, WIDTH / 2, HEIGHT / 2 - 40, RED)
@@ -215,13 +215,15 @@ class Player(pygame.sprite.Sprite):
         self.speedx = 0
 
         if self.ultReady:
-            draw_text(screen, "Press Q for Ultimate", 20, 85, 35, YELLOW)
+            draw_text(screen, "Press Q for Ultimate", 20, 95, 35, YELLOW)
         else:
-            draw_text(screen, "Ultimate Not Ready", 20, 85, 35, YELLOW)
+            draw_text(screen, "Ultimate Not Ready", 20, 95, 35, YELLOW)
 
         if self.hidden:
             keystate = pygame.K_DOWN
             for self in enemy_bullets:
+                self.kill()
+            for self in player_bullets:
                 self.kill()
         else:
             keystate = pygame.key.get_pressed()
@@ -293,6 +295,7 @@ class Player(pygame.sprite.Sprite):
 
     def undo_za_warudo(self):
         self.zawarudo = False
+        self.kills = 0
         self.image = pygame.transform.scale(player_img, (25, 25))
 
 class Bullet(pygame.sprite.Sprite):
