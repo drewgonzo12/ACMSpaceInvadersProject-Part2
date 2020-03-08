@@ -213,7 +213,7 @@ while x_start <= x_end:
     x_start += 40
 rows_of_enemies = 8
 enemies = []
-enemies1 = []
+enemiesCopy = []
 
 
 def make_enemies():
@@ -228,7 +228,7 @@ def make_enemies():
             else:
                 enemy = Aliens(index, y, 3)
             enemies.append(enemy)
-            enemies1.append(enemy)
+            enemiesCopy.append(enemy)
         y = y + 30
     for i in enemies:
         all_sprites.add(i)
@@ -280,17 +280,21 @@ def reset_barriers(creation_toggle):
 def reset_enemies():
     if (level(0) + 1) <= 1:
         reset_barriers(True)
-        make_enemies()
+        for enemy in enemiesCopy:
+            enemy.rect.x = enemy.originX
+            enemy.rect.y = enemy.originY
+            enemy.speedx = 1
+            enemy.is_dead = False
+            enemies.append(enemy)
+            all_sprites.add(enemy)
+            aliens.add(enemy)
     elif (level(0) + 1) % 3 != 0 and (level(0) + 1) >= 2:
         reset_barriers(True)
-        for enemy in enemies1:
+        for enemy in enemiesCopy:
             # Added the following 2 lines of code for getting a random int
             # and passing it to the random_enemy_type function inside the Aliens class
             random_enemy_type = random.randint(1, 9)
             enemy.set_enemy_type(random_enemy_type)
-            enemies.append(enemy)
-            all_sprites.add(enemy)
-            aliens.add(enemy)
             enemy.is_dead = False
             # Added this line to reset the newly added alien "state"
             enemy.state = False
@@ -298,6 +302,9 @@ def reset_enemies():
             enemy.rect.y = enemy.originY
             enemy.speedx = 1
             enemy.enemy_type = random_enemy_type
+            enemies.append(enemy)
+            all_sprites.add(enemy)
+            aliens.add(enemy)
     else:
         boss.reset()
         reset_barriers(False)
@@ -334,7 +341,7 @@ def level_change():
 # ---- this block is for the start screen and to begin new levels ----
 def show_go_screen():
     screen.fill(BLACK)
-    draw_text(screen, "SPACE INVADERS!", 62, WIDTH / 2, HEIGHT / 6, YELLOW)
+    draw_text(screen, "SPACE INVADERS!", 50, WIDTH / 2, HEIGHT / 6, YELLOW)
     draw_text(screen, "Arrow keys to move, SPACE to fire weapon", 22, WIDTH / 2, HEIGHT / 3, WHITE)
     draw_text(screen, "Level: " + str(level(1)), 40, WIDTH / 2, HEIGHT / 2 - 40, RED)
     pygame.display.flip()
@@ -371,9 +378,9 @@ class Player(pygame.sprite.Sprite):
     def update(self):
 
         if self.ultReady:
-            draw_text(screen, "Press Q for Ultimate", 20, 85, 35, YELLOW)
+            draw_text(screen, "Press Q for Ultimate", 20, 95, 35, YELLOW)
         else:
-            draw_text(screen, "Ultimate not Ready", 20, 85, 35, YELLOW)
+            draw_text(screen, "Ultimate not Ready", 20, 95, 35, YELLOW)
 
         if self.hidden and pygame.time.get_ticks() - self.hide_timer > 1800:
             self.hidden = False
@@ -625,50 +632,47 @@ class Aliens(pygame.sprite.Sprite):
         # The aliens will no longer drop down in sync
         if not self.zawarudo:
             self.rect.x += self.speedx
+
         if not self.state:
             if self.rect.x > WIDTH - 15:
                 self.rect.x = WIDTH - 15
-                for self in enemies:
-                    self.speedx *= -1
-                    self.rect.y += 5
+                for enemy in enemies:
+                    enemy.speedx *= -1
+                    enemy.rect.y += 5
             if self.rect.x < 0:
                 if self.enemy_type == 11:
-                    self.rect.x += self.speedx
                     self.is_dead = True
                     all_sprites.remove(self)
                     aliens.remove(self)
                     enemies.remove(self)
-                    self.kill()
                 else:
                     self.rect.x = 0
-                    for self in enemies:
-                        self.speedx *= -1
-                        self.rect.y += 5
+                    for enemy in enemies:
+                        enemy.speedx *= -1
+                        enemy.rect.y += 5
         else:
-            for self in enemies:
-                if self.rect.x > WIDTH - 15:
-                    self.rect.x = WIDTH - 15
-                    self.speedx *= -1
-                    self.rect.y += 5
-                if self.rect.x < 0:
-                    if self.enemy_type == 11:
-                        self.rect.x += self.speedx
-                        self.is_dead = True
-                        all_sprites.remove(self)
-                        aliens.remove(self)
-                        enemies.remove(self)
-                        self.kill()
+            for enemy in enemies:
+                if enemy.rect.x > WIDTH - 15:
+                    enemy.rect.x = WIDTH - 15
+                    enemy.speedx *= -1
+                    enemy.rect.y += 5
+                if enemy.rect.x < 0:
+                    if enemy.enemy_type == 11:
+                        enemy.is_dead = True
+                        all_sprites.remove(enemy)
+                        aliens.remove(enemy)
+                        enemies.remove(enemy)
                     else:
-                        self.rect.x = 0
-                        self.speedx *= -1
-                        self.rect.y += 5
+                        enemy.rect.x = 0
+                        enemy.speedx *= -1
+                        enemy.rect.y += 5
 
     def shoot(self):
         if not self.zawarudo:
             bullet = EnemyBullet(self.rect.centerx, self.rect.top)
             all_sprites.add(bullet)
             enemy_bullets.add(bullet)
-            enemy_shoot_sound.play
+            enemy_shoot_sound.play()
 
 
 class EnemyBullet(pygame.sprite.Sprite):
@@ -902,18 +906,15 @@ def game_loop():
                     ult_counter += 1
                     if player.zawarudo:
                         player.kills += 1
-
                     if aliensDead == enemyCount / 2:
                         for alien in aliens:
                             alien.speedx *= 2
-
                             if player.difficulty == 0:
                                 probability = 0.0004
                             elif player.difficulty == 1:
                                 probability = 0.0007
                             elif player.difficulty == 2:
                                 probability = 0.0010
-
                             boolean_value = random.randint(0, 1)
                             if alien.enemy_type != 11:
                                 if boolean_value == 0:
@@ -956,9 +957,9 @@ def game_loop():
             # -------------------------------Player colliding with enemy-------------------------------
             hits = pygame.sprite.spritecollide(player, aliens, False, pygame.sprite.collide_circle)
             if hits:
+                player.hide()
                 pygame_die_sound.play()
                 death_explosion2 = Explosion(player.rect.center, 'player')
-                player.hide()
                 all_sprites.add(death_explosion2)
                 while death_explosion2.alive():
                     death_explosion2.update()
@@ -973,13 +974,13 @@ def game_loop():
                     aliens.remove(alien)
                     enemies.remove(alien)
                 level(-1)
+                score(-1)
                 player.lives = 3
                 running = False
                 screen.fill(BLACK)
                 draw_text(screen, "GAME OVER!", 64, WIDTH / 2, HEIGHT / 6, YELLOW)
                 draw_text(screen, "Game loading...", 40, WIDTH / 2, HEIGHT / 2 + 230, RED)
                 show_scores(score(0))
-                score(-1)
                 pygame.display.flip()
                 pygame.time.wait(3000)
                 reset_enemies()
@@ -1069,13 +1070,13 @@ def game_loop():
                         aliens.remove(alien)
                         enemies.remove(alien)
                     level(-1)
+                    score(-1)
                     player.lives = 3
                     running = False
                     screen.fill(BLACK)
                     draw_text(screen, "GAME OVER!", 64, WIDTH / 2, HEIGHT / 6, YELLOW)
                     draw_text(screen, "Game loading...", 40, WIDTH / 2, HEIGHT / 2 + 230, RED)
                     show_scores(score(0))
-                    score(-1)
                     pygame.display.flip()
                     pygame.time.wait(3000)
                     reset_enemies()
@@ -1100,6 +1101,7 @@ try:
 except:
     f = open("High_Scores.txt", "w+")
     f.close()
+
 all_sprites = pygame.sprite.Group()
 aliens = pygame.sprite.Group()
 player_bullets = pygame.sprite.Group()
