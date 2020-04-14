@@ -174,7 +174,7 @@ def reset_enemies():
             enemies.append(enemy)
             all_sprites.add(enemy)
             aliens.add(enemy)
-    elif (level(0) + 1) >= 2:
+    elif (level(0) + 1) % 3 != 0  and (level(0) + 1) >= 2:
         reset_barriers(True)
         for enemy in enemiesCopy:
             random_enemy_type = random.randint(1, 9)
