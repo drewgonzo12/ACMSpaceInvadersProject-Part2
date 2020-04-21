@@ -76,9 +76,9 @@ def set_ability(ability):
 
 
 def start_game_elements():
-    player.user = e1.get('1.0', 'end-1c')
-    if player.user == "":
-        player.user = "SI-Player"
+    if not e1.get('1.0', 'end-1c') == "":
+        player.user = e1.get('1.0', 'end-1c')
+    make_enemies()
     make_barriers()
     window.destroy()
 
@@ -1108,7 +1108,6 @@ player_bullets = pygame.sprite.Group()
 enemy_bullets = pygame.sprite.Group()
 barriers = pygame.sprite.Group()
 boss = Boss()
-make_enemies()
 player = Player()
 all_sprites.add(player)
 
@@ -1158,4 +1157,3 @@ window.mainloop()
 
 username = player.user
 game_loop()
-pygame.quit()
